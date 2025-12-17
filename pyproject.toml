@@ -4,4 +4,4 @@ version = "0.1.0"
 dependencies = ["openai"]
 
 [project.scripts]
-chelp = "commandhelp.Main:main"
+chelp = "src.LinuxAgent.Agent.Main:main"

@@ -379,3 +379,13 @@ pip install .
 ---
 
 如果你愿意，把你的项目结构（目录树）贴给我，我可以 **一步到位帮你调整成可 pip 安装的完整结构**，你只需要复制粘贴即可。
+
+把 src 标记为 Source Root（PyCharm 专用）
+
+这是开发期最方便、但不等价于真实部署的方式。
+
+PyCharm 会自动把 src/ 加进 sys.path
+
+你可以直接运行 Main.py
+
+from LinuxAgent import __version__ 可用

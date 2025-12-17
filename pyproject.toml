@@ -1,0 +1,7 @@
+[project]
+name = "commandhelp"
+version = "0.1.0"
+dependencies = ["openai"]
+
+[project.scripts]
+chelp = "commandhelp.Main:main"

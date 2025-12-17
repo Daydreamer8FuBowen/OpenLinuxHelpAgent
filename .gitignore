@@ -1,0 +1,49 @@
+# ========================== PyCharm/IntelliJ IDEA 专属（核心）==========================
+# PyCharm的核心配置目录，包含项目设置、运行配置、缓存等
+.idea/
+# IntelliJ系列的模块文件
+*.iml
+# IntelliJ的工作区文件（旧版）
+*.iws
+# IntelliJ的项目文件（旧版）
+*.ipr
+# PyCharm的编译输出目录（如果开启了本地编译）
+out/
+# 项目的编译产物目录（IntelliJ默认）
+target/
+
+# ========================== Python项目核心忽略规则 ==========================
+# Python编译后的字节码文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+# Python的缓存文件（针对Python 3.8+的__pycache__之外的缓存）
+.pytest_cache/
+
+# 虚拟环境目录（Python项目必忽略，避免提交依赖环境）
+.venv/
+venv/
+env/
+ENV/
+env.local/
+env/
+ENV3/
+
+# Python项目的依赖与构建产物
+*.egg-info/
+dist/
+build/
+*.whl
+*.egg
+# 打包生成的压缩包
+*.tar.gz
+*.zip
+
+# 环境变量文件（包含敏感信息：密钥、数据库密码、端口等）
+.env
+.env.local
+.env.*.local
+# Python的日志文件
+*.log
+logs/

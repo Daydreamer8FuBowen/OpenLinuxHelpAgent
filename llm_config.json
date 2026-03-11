@@ -1,0 +1,9 @@
+{
+  "model": "qwen-flash",
+  "model_provider": "openai",
+  "api_key": "sk-8LgJuWHZWl69omW0bypIYKEh2h5oy2CHQbF0Fqst7kXTB7K9",
+  "base_url": "https://api.xiaocaseai.com/v1",
+  "temperature": 0.3,
+  "timeout": 10,
+  "max_tokens": 600
+}

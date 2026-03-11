@@ -1,7 +1,7 @@
 [project]
 name = "commandhelp"
 version = "0.1.0"
-dependencies = ["openai"]
+dependencies = ["openai>=1.0.0", "langchain==1.2.0", "langchain-core>=1.2.0", "langchain-openai>=1.0.0", "langchain-community>=0.4.0", "docker"]
 
 [project.scripts]
-chelp = "src.LinuxAgent.Agent.Main:main"
+chelp = "LinuxAgent.App.Main:main"

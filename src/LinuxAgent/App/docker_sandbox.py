@@ -7,7 +7,7 @@ from typing import Any
 from LinuxAgent.log import get_logger
 
 
-logger = get_logger("Agent.docker_sandbox")
+logger = get_logger("App.docker_sandbox")
 
 
 class DockerSandbox:
@@ -45,18 +45,12 @@ class DockerSandbox:
             raise RuntimeError("Docker Engine 不可用，请确认已启动 Docker Desktop/daemon") from e
 
         logger.info("sandbox start image=%s workspace=%s", self._image, self._workspace_host)
-        volumes = {
-            str(self._workspace_host): {
-                "bind": "/workspace",
-                "mode": os.getenv("CHELP_DOCKER_WORKSPACE_MODE") or "ro",
-            }
-        }
+
         self._container = self._client.containers.run(
             self._image,
             command=["bash", "-lc", "sleep infinity"],
             detach=True,
             tty=True,
-            volumes=volumes,
             working_dir="/workspace",
         )
 
@@ -96,4 +90,3 @@ class DockerSandbox:
         except Exception:
             pass
         self._container = None
-

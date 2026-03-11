@@ -15,7 +15,7 @@ from LinuxAgent.App.config import load_whitelist
 from LinuxAgent.Memory.sqlite_db import SqlitePaths
 from LinuxAgent.Memory.sqlite_history import SqliteHistory
 from LinuxAgent.log import get_logger, init_logging
-from LinuxAgent.Agent.docker_sandbox import DockerSandbox
+from LinuxAgent.App.docker_sandbox import DockerSandbox
 
 
 logger = get_logger("App.Main")
@@ -56,11 +56,6 @@ def main():
         print(history.list_tool_calls_for_cli(limit=args.p))
         return
 
-    user_text = " ".join(args.text or []).strip()  # 合并剩余参数作为输入文本
-    if not user_text:
-        build_parser().print_help()
-        return
-
     allow_execute = bool(args.y)  # 是否允许实际执行白名单命令
     extra_whitelist = load_whitelist()
     logger.info("whitelist loaded size=%s", len(extra_whitelist))
@@ -75,6 +70,11 @@ def main():
             logger.info("test mode enabled image=%s", SANDBOX.image)
         except Exception:
             logger.exception("test mode init failed")
+
+    user_text = " ".join(args.text or []).strip()  # 合并剩余参数作为输入文本
+    if not user_text:
+        build_parser().print_help()
+        return
 
     try:
         executor = build_executor(allow_execute, extra_whitelist, sandbox)  # 构建 Agent 执行器

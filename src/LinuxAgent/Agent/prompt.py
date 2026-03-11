@@ -20,7 +20,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 def build_system_prompt(*, allow_execute: bool) -> str:
     """根据执行权限开关生成系统提示词，约束工具使用与输出风格。"""
     execute_policy = (
-        "你可以调用 bash 工具执行命令，但必须只执行只读/无破坏性命令，且每次只执行一条命令。"
+        "你可以调用 bash 工具执行命令，每次只执行一条命令。"
         if allow_execute
         else "你不能执行任何命令。你可以调用 bash 工具获取“执行已禁用”的提示，并给出建议命令。"
     )

@@ -1,0 +1,8 @@
+{
+  "model": "qwen-flash",
+  "model_provider": "openai",
+  "base_url": "https://api.xiaocaseai.com/v1",
+  "temperature": 0.3,
+  "timeout": 10,
+  "max_tokens": 600
+}

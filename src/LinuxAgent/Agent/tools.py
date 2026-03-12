@@ -147,6 +147,7 @@ def _create_runner(
                     }
                 )
             except Exception:
+                logger.warning("can not import interrupt")
                 approved = False
             if approved:
                 effective_allowlist.add(first)

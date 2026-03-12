@@ -194,16 +194,8 @@ def create_tools(allow_execute: bool, extra_whitelist: set[str] | None = None, s
     runner = _create_runner(allow_execute, extra_whitelist, sandbox)
 
     @tool("bash")
-    def bash_tool(command: str, dangerous: bool | None = None, description: str | None = None) -> str:
-        """执行 bash 命令；当标记为风险指令（dangerous=True）时触发人工确认；未授权执行时返回“执行已禁用”的说明文本。"""
-        try:
-            if dangerous:
-                from langgraph.types import interrupt
-                approved = interrupt({"tool": "bash", "command": command, "description": description or ""})
-                if not approved:
-                    return "\n".join(["exit_code=None", "stderr:", "用户拒绝执行危险指令"])
-        except Exception:
-            pass
+    def bash_tool(command: str) -> str:
+        """执行只读命令；未授权时返回“执行已禁用”的说明文本。"""
         result = runner(command)
         stdout = (result.get("stdout") or "").strip()
         stderr = (result.get("stderr") or "").strip()

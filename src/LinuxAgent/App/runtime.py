@@ -120,12 +120,7 @@ def build_executor(allow_execute: bool, extra_whitelist: set[str] | None = None,
     llm = build_llm()
     tools = create_tools(allow_execute, extra_whitelist, sandbox)
     system_prompt = build_system_prompt(allow_execute=allow_execute)
-    try:
-        from langgraph.checkpoint.memory import InMemorySaver
-        checkpointer = InMemorySaver()
-        return create_agent(model=llm, tools=tools, system_prompt=system_prompt, checkpointer=checkpointer)
-    except Exception:
-        return create_agent(model=llm, tools=tools, system_prompt=system_prompt)
+    return create_agent(model=llm, tools=tools, system_prompt=system_prompt)
 
 
 def _extract_output_text(result: Any) -> str:

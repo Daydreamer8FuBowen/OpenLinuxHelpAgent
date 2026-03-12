@@ -99,64 +99,10 @@ def main():
         chat_history = compressor.compress(messages=chat_history, max_messages=20, max_chars=6000, keep_last_messages=8)
         logger.info("context ready messages=%s", len(chat_history))
 
-        from langchain_core.messages import BaseMessage, HumanMessage
-        try:
-            from langgraph.types import Command
-        except Exception:
-            Command = None
-
-        messages: list[BaseMessage] = [m for m in chat_history if isinstance(m, BaseMessage)]
-        messages.append(HumanMessage(content=user_text))
-
-        username = os.getenv("USERNAME") or os.getenv("USER") or ""
-        if not username:
-            try:
-                import getpass
-                username = getpass.getuser()
-            except Exception:
-                username = "unknown"
-        thread_id = f"chelp-{username}-{os.getpid()}"
-        config = {"configurable": {"thread_id": thread_id, "user_id": username}}
-
-        result = executor.invoke({"messages": messages}, config=config, version="v2")
-        while True:
-            interrupts = getattr(result, "interrupts", None)
-            if not interrupts and isinstance(result, dict):
-                interrupts = result.get("__interrupt__")
-            if not interrupts:
-                break
-            payload = None
-            try:
-                payload = interrupts[0].value
-            except Exception:
-                try:
-                    payload = interrupts[0].get("value")
-                except Exception:
-                    payload = None
-            if isinstance(payload, dict):
-                desc = payload.get("description") or ""
-                cmd = payload.get("command") or ""
-                print("危险指令待确认：")
-                if desc:
-                    print(desc)
-                if cmd:
-                    print(cmd)
-            else:
-                print("有待确认的操作")
-                if payload:
-                    print(str(payload))
-            decision = input("是否执行? [Y/n]: ").strip().lower()
-            approved = decision not in ("n", "no")
-            if Command is not None:
-                result = executor.invoke(Command(resume=approved), config=config, version="v2")
-            else:
-                result = executor.invoke({"resume": approved}, config=config)
-
-        from LinuxAgent.App.runtime import _extract_output_text, _extract_tool_steps
-        output_text = _extract_output_text(result)
-        intermediate_steps = _extract_tool_steps(result)
-        token_stats = None
-        print(output_text)
+        output_text, intermediate_steps, token_stats = run_query(
+            executor, user_text=user_text, chat_history=chat_history, capture_tokens=bool(args.token)
+        )
+        print(output_text)  # 输出回答文本
         logger.info("agent done tools=%s token_stats=%s", len(intermediate_steps or []), bool(token_stats))
 
         history.save_turn(

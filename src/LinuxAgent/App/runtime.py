@@ -36,10 +36,17 @@ def _project_root():
 def _load_llm_config() -> dict[str, Any]:
     import json
     from pathlib import Path
+    from importlib.resources import files
 
     path = Path(_project_root()) / "llm_config.json"
     if not path.exists():
-        return {}
+        try:
+            res = files("LinuxAgent") / "llm_config.json"
+            if res.is_file():
+                data = json.loads(res.read_text(encoding="utf-8"))
+                return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:

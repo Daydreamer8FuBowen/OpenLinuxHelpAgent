@@ -10,7 +10,7 @@ import os
 import shlex
 import shutil
 import subprocess
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from langchain_core.tools import tool
 from LinuxAgent.log import get_logger
@@ -28,7 +28,12 @@ def _first_token(command: str) -> str:
         return command.strip().split(" ", 1)[0]
 
 
-def _create_runner(allow_execute: bool, extra_whitelist: set[str] | None = None, sandbox: Any | None = None):
+def _create_runner(
+    allow_execute: bool,
+    extra_whitelist: set[str] | None = None,
+    sandbox: Any | None = None,
+    whitelist_adder: Callable[[str], None] | None = None,
+):
     """根据执行权限创建命令运行器，封装白名单与拒绝前缀校验。"""
     readonly_allowlist = {
         "ls",
@@ -105,7 +110,7 @@ def _create_runner(allow_execute: bool, extra_whitelist: set[str] | None = None,
     # 合并外部白名单（若提供），忽略在黑名单中的命令
     external = {(_first_token(c)) for c in (extra_whitelist or set())}
     external = {c for c in external if c and c not in blocked_prefixes}
-    effective_allowlist = readonly_allowlist | external
+    effective_allowlist = set(readonly_allowlist) | set(external)
     logger.debug("tool allowlist size=%s external=%s", len(effective_allowlist), len(external))
 
     def run_command(command: str) -> dict[str, Any]:
@@ -131,13 +136,35 @@ def _create_runner(allow_execute: bool, extra_whitelist: set[str] | None = None,
                 "stderr": f"命令被拒绝：{first} 可能具有破坏性或需要更高权限",
             }
         if first not in effective_allowlist:
-            logger.info("command denied (not whitelisted) token=%s cmd=%s", first, command[:200])
-            return {
-                "ok": False,
-                "exit_code": None,
-                "stdout": "",
-                "stderr": f"命令不在白名单内：{first}",
-            }
+            try:
+                from langgraph.types import interrupt
+
+                approved = interrupt(
+                    {
+                        "tool": "bash",
+                        "command": command,
+                        "description": f"命令不在白名单内，是否允许并加入白名单：{first}",
+                    }
+                )
+            except Exception:
+                logger.warning("can not import interrupt")
+                approved = False
+            if approved:
+                effective_allowlist.add(first)
+                if whitelist_adder is not None:
+                    try:
+                        whitelist_adder(first)
+                    except Exception:
+                        logger.exception("whitelist add failed token=%s", first)
+                logger.info("command allow (added whitelist) token=%s cmd=%s", first, command[:200])
+            else:
+                logger.info("command denied (not whitelisted) token=%s cmd=%s", first, command[:200])
+                return {
+                    "ok": False,
+                    "exit_code": None,
+                    "stdout": "",
+                    "stderr": f"命令不在白名单内：{first}",
+                }
         try:
             logger.info("command run token=%s cmd=%s", first, command[:200])
             if sandbox is not None:
@@ -189,9 +216,14 @@ def _create_runner(allow_execute: bool, extra_whitelist: set[str] | None = None,
     return run_command
 
 
-def create_tools(allow_execute: bool, extra_whitelist: set[str] | None = None, sandbox: Any | None = None):
+def create_tools(
+    allow_execute: bool,
+    extra_whitelist: set[str] | None = None,
+    sandbox: Any | None = None,
+    whitelist_adder: Callable[[str], None] | None = None,
+):
     """创建并返回 LangChain 工具列表（当前仅包含 bash）。"""
-    runner = _create_runner(allow_execute, extra_whitelist, sandbox)
+    runner = _create_runner(allow_execute, extra_whitelist, sandbox, whitelist_adder)
 
     @tool("bash")
     def bash_tool(command: str) -> str:

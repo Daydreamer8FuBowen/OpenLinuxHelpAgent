@@ -30,7 +30,6 @@ def build_system_prompt(*, allow_execute: bool) -> str:
             execute_policy,
             "你不能捏造命令输出；如果需要系统信息，请通过 bash 工具获取。",
             "当给出命令时，优先给出可复制的完整命令；不要包含多余解释性前缀。",
-            "默认假设用户权限为普通用户；涉及 root/危险操作必须显式提醒并给出只读替代方案。",
         ]
     )
 

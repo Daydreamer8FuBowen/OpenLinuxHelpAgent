@@ -118,7 +118,14 @@ def build_llm():
 def build_executor(allow_execute: bool, extra_whitelist: set[str] | None = None, sandbox: Any | None = None) -> Any:
     """按执行权限装配工具与系统提示词，返回可 invoke 的 Agent。"""
     llm = build_llm()
-    tools = create_tools(allow_execute, extra_whitelist, sandbox)
+    try:
+        from LinuxAgent.App.config import add_to_whitelist
+
+        def _whitelist_adder(token: str) -> None:
+            add_to_whitelist([token])
+    except Exception:
+        _whitelist_adder = None
+    tools = create_tools(allow_execute, extra_whitelist, sandbox, whitelist_adder=_whitelist_adder)
     system_prompt = build_system_prompt(allow_execute=allow_execute)
     try:
         from langgraph.checkpoint.memory import InMemorySaver

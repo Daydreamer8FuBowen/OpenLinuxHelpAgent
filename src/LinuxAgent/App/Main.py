@@ -136,7 +136,7 @@ def main():
             if isinstance(payload, dict):
                 desc = payload.get("description") or ""
                 cmd = payload.get("command") or ""
-                print("危险指令待确认：")
+                print("操作待确认：")
                 if desc:
                     print(desc)
                 if cmd:

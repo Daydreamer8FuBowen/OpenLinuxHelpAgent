@@ -10,8 +10,9 @@ from LinuxAgent import __version__
 
 from LinuxAgent.App.cli import build_parser, parse_args
 from LinuxAgent.App.runtime import build_executor, build_llm, run_query
-from LinuxAgent.Agent.subagents import ContextCompressionAgent, MemoryExtractionAgent, MemoryRetrievalAgent
+from LinuxAgent.Agent.subagents import ContextCompressionAgent, MemoryExtractionAgent
 from LinuxAgent.App.config import load_whitelist
+from LinuxAgent.Memory.loader import ChatHistoryLoader, RetrievalMemoryLoader
 from LinuxAgent.Memory.sqlite_db import SqlitePaths
 from LinuxAgent.Memory.sqlite_history import SqliteHistory
 from LinuxAgent.log import get_logger, init_logging
@@ -78,14 +79,16 @@ def main():
 
     try:
         executor = build_executor(allow_execute, extra_whitelist, sandbox)  # 构建 Agent 执行器
-        chat_history = history.load_chat_history_messages(limit_messages=20)  # 载入最近历史消息
-        logger.info("chat history loaded messages=%s", len(chat_history))
 
-        retriever = MemoryRetrievalAgent(history.db)
-        memory_message = retriever.build_memory_message(query=user_text, limit=5)
-        if memory_message is not None:
-            logger.info("memory retrieved injected")
-            chat_history = [memory_message, *chat_history]
+        # 1. 加载最近历史消息
+        history_loader = ChatHistoryLoader(history, limit_messages=20)
+        chat_history = history_loader.load()
+
+        # 2. 检索并注入相关记忆
+        retrieval_loader = RetrievalMemoryLoader(history.db, query=user_text, limit=5)
+        injected_memories = retrieval_loader.load()
+        if injected_memories:
+            chat_history = injected_memories + chat_history
 
         compressor = ContextCompressionAgent(build_llm())
         chat_history = compressor.compress(messages=chat_history, max_messages=20, max_chars=6000, keep_last_messages=8)

@@ -52,6 +52,11 @@ def main():
     history = SqliteHistory()  # 初始化 SQLite 历史管理器
     logger.info("history db=%s", history.db.db_file)
 
+    if args.h is not None:
+        logger.info("print history dialogues limit=%s", args.h)
+        print(history.list_recent_dialogues_for_cli(limit=args.h))
+        return
+
     if args.p is not None:
         logger.info("print tool calls limit=%s", args.p)
         print(history.list_tool_calls_for_cli(limit=args.p))

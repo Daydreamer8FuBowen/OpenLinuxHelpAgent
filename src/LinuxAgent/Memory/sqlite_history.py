@@ -155,3 +155,28 @@ class SqliteHistory:
             user_text = (r.get("user_text") or "").replace("\n", " ")
             lines.append(f"[{created_at}] turn={turn_id} :: {user_text}")
         return "\n".join(lines)
+
+    def list_recent_dialogues_for_cli(self, *, limit: int = 5) -> str:
+        if limit <= 0:
+            return "暂无历史对话记录"
+        rows = self._db.list_recent_turns(limit=limit)
+        if not rows:
+            return "暂无历史对话记录"
+        rows.reverse()
+
+        lines: list[str] = []
+        for r in rows:
+            turn_id = r.get("id", "")
+            created_at = r.get("created_at", "")
+            user_text = (r.get("user_text") or "").strip()
+            agent_text = (r.get("agent_text") or "").strip()
+
+            lines.append(f"[{created_at}] turn={turn_id}")
+            if user_text:
+                lines.append("Human: " + user_text.replace("\n", "\n  "))
+            if agent_text:
+                lines.append("AI: " + agent_text.replace("\n", "\n  "))
+            lines.append("")
+        if lines and lines[-1] == "":
+            lines.pop()
+        return "\n".join(lines)
